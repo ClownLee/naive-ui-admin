@@ -3,7 +3,7 @@ import { store } from '@/store';
 import { ACCESS_TOKEN, CURRENT_USER, IS_LOCKSCREEN } from '@/store/mutation-types';
 import { ResultEnum } from '@/enums/httpEnum';
 
-import { getUserInfo, login } from '@/api/system/user';
+import { getUserInfo, confirmLogin } from '@/api/system/user';
 import { storage } from '@/utils/Storage';
 
 export interface IUserState {
@@ -56,9 +56,9 @@ export const useUserStore = defineStore({
       this.info = info;
     },
     // 登录
-    async login(userInfo) {
+    async login(userInfo = {}) {
       try {
-        const response = await login(userInfo);
+        const response = await confirmLogin(userInfo);
         const { result, code } = response;
         if (code === ResultEnum.SUCCESS) {
           const ex = 7 * 24 * 60 * 60 * 1000;

@@ -18,16 +18,19 @@
   import moment from 'moment';
   import { reactive } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
+  import { useUserStore } from '@/store/modules/user';
   import { useMessage } from 'naive-ui';
   import { ResultEnum } from '@/enums/httpEnum';
   import { PageEnum } from '@/enums/pageEnum';
-  import { getKeys, getLogin } from '@/api/system/user';
+  import { getKeys } from '@/api/system/user';
+  
   import { websiteConfig } from '@/config/website.config';
   import Crypto from '@/utils/crypto';
 
   const router = useRouter();
   const route = useRoute();
   const message = useMessage();
+  const userStore = useUserStore();
 
   interface STATE {
     key: string,
@@ -69,7 +72,7 @@
     const time = {
       type: 'login',
       refreshTime: moment().valueOf(),
-      outTime: moment().add(120, 'seconds').valueOf(),
+      outTime: moment().add(60, 'seconds').valueOf(),
       data: {
         key: state.key
       }
@@ -78,7 +81,7 @@
     generateQR(state.crypto.encrypt(time));
     
     let t = setInterval(async () => {
-      const { code, result } = await getLogin();
+      const { code, result } = await userStore.login();
       
       console.log(result);
 
@@ -100,7 +103,7 @@
         state.invalid = true;
         clearInterval(t);
       }
-    }, 1000);
+    }, 2000);
   }
   getPubPriKey();
 </script>
@@ -108,7 +111,6 @@
 <style lang="less" scoped>
   .invalid {
     position: relative;
-    
   }
   .invalid::after {
     position: absolute;

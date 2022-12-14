@@ -39,44 +39,12 @@ export function getKeys(params = {}) {
 }
 
 /**
- * @description: 实时刷新，获取登录信息
- */
-export function getLogin(params = {}) {
-  return http.request<BasicResponseModel>(
-    {
-      url: '/get_login',
-      method: 'POST',
-      params,
-    },
-    {
-      isTransformResponse: false,
-    }
-  );
-}
-
-/**
  * @description: 用户登录
  */
-export function login(params) {
+export function confirmLogin(params) {
   return http.request<BasicResponseModel>(
     {
-      url: '/login',
-      method: 'POST',
-      params,
-    },
-    {
-      isTransformResponse: false,
-    }
-  );
-}
-
-/**
- * @description: 用户修改密码
- */
-export function changePassword(params, uid) {
-  return http.request(
-    {
-      url: `/user/u${uid}/changepw`,
+      url: '/confirm_login',
       method: 'POST',
       params,
     },

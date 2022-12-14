@@ -43,9 +43,9 @@ const keys = {
 }
 
 export default [
-  // 微信上点击登录后，提交后台的信息
+  // 轮询获取登录信息
   {
-    url: '/api/login',
+    url: '/api/confirm_login',
     timeout: 1000,
     method: 'post',
     response: () => {
@@ -70,15 +70,6 @@ export default [
     method: 'post',
     response: () => {
       return resultSuccess(keys);
-    },
-  },
-  // 轮询获取登录信息
-  {
-    url: '/api/get_login',
-    timeout: 1000,
-    method: 'post',
-    response: () => {
-      return resultSuccess({ token: adminInfo.token });
     },
   },
 ];
