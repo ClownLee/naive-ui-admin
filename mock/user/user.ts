@@ -11,8 +11,7 @@ const adminInfo = {
   realName: 'Admin',
   avatar: Random.image(),
   desc: 'manager',
-  password: Random.string('upper', 4, 16),
-  token,
+  token: '',
   permissions: [
     {
       label: '主控台',
@@ -37,13 +36,21 @@ const adminInfo = {
   ],
 };
 
+const keys = {
+  key: Random.string('upper', 16, 16),
+  publicKey: 'm2dn!#y6*l44*o2q',
+  privateKey: '$c%e5vrb3i+f190t',
+}
+
 export default [
+  // 微信上点击登录后，提交后台的信息
   {
     url: '/api/login',
     timeout: 1000,
     method: 'post',
     response: () => {
-      return resultSuccess({ token });
+      adminInfo.token = token;
+      return resultSuccess(adminInfo);
     },
   },
   {
@@ -54,6 +61,24 @@ export default [
       // const token = getRequestToken(request);
       // if (!token) return resultError('Invalid token');
       return resultSuccess(adminInfo);
+    },
+  },
+  // 获取加密的key
+  {
+    url: '/api/get_keys',
+    timeout: 1000,
+    method: 'post',
+    response: () => {
+      return resultSuccess(keys);
+    },
+  },
+  // 轮询获取登录信息
+  {
+    url: '/api/get_login',
+    timeout: 1000,
+    method: 'post',
+    response: () => {
+      return resultSuccess({ token: adminInfo.token });
     },
   },
 ];

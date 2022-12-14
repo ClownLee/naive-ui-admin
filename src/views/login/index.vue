@@ -17,16 +17,28 @@
   import QRCode from 'qrcode';
   import moment from 'moment';
   import { reactive } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { useMessage } from 'naive-ui';
+  import { ResultEnum } from '@/enums/httpEnum';
+  import { PageEnum } from '@/enums/pageEnum';
+  import { getKeys, getLogin } from '@/api/system/user';
   import { websiteConfig } from '@/config/website.config';
   import Crypto from '@/utils/crypto';
 
+  const router = useRouter();
+  const route = useRoute();
+  const message = useMessage();
 
-  const crypto = new Crypto(
-    '123dipaskfo%dfasda*4',
-    'djfsajraert#423542352345'
-  );
+  interface STATE {
+    key: string,
+    crypto: any;
+    qrUrl: string;
+    invalid: boolean;
+  }
 
-  const state = reactive({
+  const state: STATE = reactive({
+    key: '',
+    crypto: null,
     qrUrl: '',
     invalid: true
   });
@@ -38,27 +50,59 @@
       console.error(err)
     }
   }
-  const setQR = () => {
-    if(!state.invalid) return;
 
+  const getPubPriKey = async () => {
+    const { code, result } = await getKeys();
+    if(code === ResultEnum.SUCCESS) {
+      console.log(result);
+      state.key = result.key;
+      state.crypto = new Crypto(result.publicKey, result.privateKey);
+      setQR();
+    }else {
+      state.crypto = null;
+    }
+  }
+  
+  const setQR = async () => {
+    if(!state.invalid) return;
     state.invalid = false;
     const time = {
       type: 'login',
       refreshTime: moment().valueOf(),
-      outTime: moment().add(120, 'seconds').valueOf()
+      outTime: moment().add(120, 'seconds').valueOf(),
+      data: {
+        key: state.key
+      }
     }
 
-    generateQR(crypto.encrypt(time));
+    generateQR(state.crypto.encrypt(time));
     
-    let t = setInterval(() => {
-      console.log(t);
+    let t = setInterval(async () => {
+      const { code, result } = await getLogin();
+      
+      console.log(result);
+
+      message.destroyAll();
+      if(code === ResultEnum.SUCCESS && result.token !== '') {
+        clearInterval(t);
+        state.invalid = true;
+        
+        message.success('登录成功，即将进入系统');
+        if (route.name === PageEnum.BASE_LOGIN_NAME) {
+          router.replace('/');
+        } else {
+          const toPath = decodeURIComponent((route.query?.redirect || '/') as string);
+          router.replace(toPath);
+        }
+      }
+
       if(moment().valueOf() > time.outTime) {
         state.invalid = true;
         clearInterval(t);
       }
     }, 1000);
   }
-  setQR();
+  getPubPriKey();
 </script>
 
 <style lang="less" scoped>
@@ -71,6 +115,7 @@
     left: 0;
     bottom: 0;
     display: block;
+    color: #666666;
     content: '[已失效]';
     cursor: pointer;
     text-align: center;
